@@ -1,4 +1,6 @@
 import DashboardModel from '../models/dashboard'
+import Thumbnial from '../models/thumbnail'
+
 import crypto from 'crypto'
 import formidable from "formidable";
 import UserModel from "../models/user";
@@ -13,7 +15,7 @@ class Dashboard {
         return md5.update(str).digest('hex');
     }
 
-    async getSetting(req, res, next) {
+    async getConfig(req, res, next) {
         const hash = req.params.hash
         try{
             const col = await DashboardModel.findOne({hash: hash}, '-_id -user -__v')
@@ -24,16 +26,28 @@ class Dashboard {
         }catch(err){
             res.send({
                 code: 1,
-                msg: '获取大屏失败'
+                msg: '获取大屏失败',
+                extra: err
             })
         }
     }
     async update(req, res, next) {
         const hash = req.params.hash
         const config = req.body.config
+        const thumb = req.body.imgData
 
         try{
             await DashboardModel.findOneAndUpdate({hash: hash}, {$set: {config: config}});
+            const newThumb = {
+                hash: hash,
+                name: name,
+                level: level || 0,
+                author: author,
+                timestamp: Number(new Date()),
+            }
+
+            await Thumbnial.update({hash: hash}, {$set: {image: data}});
+
             res.send({
                 code: 0
             })
@@ -91,6 +105,26 @@ class Dashboard {
             res.send({
                 code: 1,
                 msg: '删除失败'
+            })
+        }
+    }
+    async getListForUser(req, res, next) {
+        const {limit = 20, offset = 0} = req.query;
+        const user = req.params.id
+        try{
+            const cols = await DashboardModel.find({user: user}, '-_id -user -__v').sort({id: -1}).skip(Number(offset)).limit(Number(limit))
+            res.send({
+                code: 0,
+                data: {
+                    items:cols,
+                    total:cols.length
+                }
+            })
+        }catch(err){
+            console.log('获取用户信息失败');
+            res.send({
+                code: 1,
+                msg: '获取用户信息失败'
             })
         }
     }

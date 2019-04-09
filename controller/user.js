@@ -1,5 +1,4 @@
 import UserModel from '../models/user'
-import DashboardModel from '../models/dashboard'
 import crypto from 'crypto'
 import formidable from 'formidable'
 import dtime from 'time-formater'
@@ -247,26 +246,6 @@ class User {
                 message: '上传图片失败'
             })
             return
-        }
-    }
-    async getDashboards(req, res, next) {
-        const {limit = 20, offset = 0} = req.query;
-        const user = req.params.id
-        try{
-            const cols = await DashboardModel.find({user: user}, '-_id -user -__v').sort({id: -1}).skip(Number(offset)).limit(Number(limit))
-            res.send({
-                code: 0,
-                data: {
-                    items:cols,
-                    total:cols.length
-                }
-            })
-        }catch(err){
-            console.log('获取用户信息失败');
-            res.send({
-                code: 1,
-                msg: '获取用户信息失败'
-            })
         }
     }
 }
