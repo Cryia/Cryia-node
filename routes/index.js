@@ -4,6 +4,7 @@ import express from 'express'
 import User from '../controller/user'
 import Dashboard from '../controller/dashboard'
 import Template from '../controller/template'
+import Publish from '../controller/publish'
 import Upload from '../controller/upload'
 
 import v1 from './v1'
@@ -23,6 +24,10 @@ router.post('/user/:id/dashboards', Dashboard.create)
 router.get('/dashboards/:hash', Dashboard.getConfig)
 router.put('/dashboards/:hash', Dashboard.update)
 router.delete('/dashboards/:hash', Dashboard.delete)
+
+// 发布管理
+router.post('/publish/:hash', Dashboard.publish)
+router.get('/publish/:hash', Publish.getConfig)
 
 // 模板管理
 router.get('/templates', Template.getAll)

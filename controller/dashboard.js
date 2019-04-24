@@ -1,4 +1,4 @@
-import { DashboardModel, TemplateModel } from '../models/dashboard'
+import { DashboardModel, TemplateModel, PublishModel } from '../models/dashboard'
 import Thumbnial from "./thumbnail";
 
 import { Hash } from '../utils/crypto'
@@ -13,10 +13,9 @@ class Dashboard {
             const col = await dbModel.findOne({hash: hash}, '-_id -user -__v')
             res.send({
                 code: 0,
-                codd: 0,
                 data: col
             })
-        } catch(err) {
+        } catch (err) {
             res.send({
                 code: 1,
                 msg: '获取大屏失败',
@@ -36,15 +35,15 @@ class Dashboard {
         const dbModel = (req.originalUrl.indexOf('template') === 1) ? TemplateModel : DashboardModel
         try {
             await dbModel.findOneAndUpdate({hash: hash}, {$set: {
-                                                                        config: config,
-                                                                        imgUrl: imgUrl,
-                                                                        widget: widget}
-                                                                    })
+                                                            config: config,
+                                                            imgUrl: imgUrl,
+                                                            widget: widget}
+                                                        })
 
             res.send({
                 code: 0
             })
-        } catch(err) {
+        } catch (err) {
             res.send({
                 code: 1,
                 msg: '保存失败',
@@ -59,7 +58,7 @@ class Dashboard {
             if(!payload.name){
                 throw new Error('大屏名称不能为空')
             }
-        } catch(err) {
+        } catch (err) {
             res.send({
                 code: 1,
                 message: err.message
@@ -80,13 +79,13 @@ class Dashboard {
                 title: payload.name,
                 about: payload.about || '',
                 width: template ? template.config.width : 1920,
-                height: template ? template.config.width : 1080,
+                height: template ? template.config.height : 1080,
                 zoom: template ? template.config.zoom : 100,
                 backgroundColor: template ? template.config.backgroundColor : '#FFFFFF',
-                backgroundPic: template ? template.config.backgroundPic : '',
+                backPic: template ? template.config.backPic : '',
                 timestamp: new Date().getTime()
             },
-            widget: template ? template.config.widget : [],
+            widget: template ? template.widget : [],
             publish: {
                 url: '',
                 status: 'unpublished'
@@ -111,12 +110,11 @@ class Dashboard {
 
         const dbModel = (req.originalUrl.indexOf('template') === 1) ? TemplateModel : DashboardModel
         try {
-            const col = await dbModel.remove({hash: hash})
+            await dbModel.remove({hash: hash})
             res.send({
-                code: 0,
-                data: col
+                code: 0
             })
-        } catch(err) {
+        } catch (err) {
             res.send({
                 code: 1,
                 msg: '删除失败'
@@ -139,10 +137,69 @@ class Dashboard {
                     total:cols.length
                 }
             })
-        } catch(err) {
+        } catch (err) {
             res.send({
                 code: 1,
                 msg: '获取大屏列表失败'
+            })
+        }
+    }
+
+    async publish (req, res, next) {
+        const hash = req.params.hash
+        const option = req.body.option
+        let dashboardCol
+
+        try {
+            dashboardCol = await DashboardModel.findOne({hash: hash}, '-_id -__v')
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '获取大屏信息失败'
+            })
+
+            return
+        }
+
+        dashboardCol.publish.status = option
+        dashboardCol.publish.timestamp = new Date().getTime()
+
+        switch (option) {
+            case 'unpublished' :
+                await PublishModel.remove({hash: dashboardCol.publish.hash})
+                dashboardCol.publish.hash = ''
+                break
+            case 'published' :
+                const pubHash = Hash(dashboardCol.hash + new Date())
+                dashboardCol.publish.hash = pubHash
+                try {
+                    await PublishModel.create({
+                        hash: pubHash,
+                        config: dashboardCol.config,
+                        widget: dashboardCol.widget
+                    })
+                } catch (err) {
+                    console.log(err)
+                }
+                
+                break
+            case 'republish' :
+                dashboardCol.publish.status = 'published'
+                await PublishModel.findOneAndUpdate({hash: dashboardCol.publish.hash}, {$set: {config: dashboardCol.config, widget: dashboardCol.widget}})
+                break
+        }
+
+        try {
+            await DashboardModel.findOneAndUpdate({hash: hash}, {$set: {publish: dashboardCol.publish}})
+
+            res.send({
+                code: 0
+            })
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '更新失败',
+                extra: err
             })
         }
     }

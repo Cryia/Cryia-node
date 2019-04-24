@@ -18,8 +18,7 @@ const dashboardSchema = new Schema({
     },
     widget: Array,
     publish: {
-        id: String,
-        url: String,
+        hash: String,
         status: String,
         timestamp: Number
     },
@@ -33,3 +32,5 @@ const dashboardSchema = new Schema({
 export const DashboardModel = mongoose.model('Dashboard', dashboardSchema);
 
 export const TemplateModel = mongoose.model('Template', dashboardSchema);
+
+export const PublishModel = mongoose.model('Publish', dashboardSchema);
