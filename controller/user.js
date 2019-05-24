@@ -1,7 +1,6 @@
 import UserModel from '../models/user'
 import crypto from 'crypto'
 import formidable from 'formidable'
-import dtime from 'time-formater'
 
 class User {
     constructor() {
@@ -121,10 +120,8 @@ class User {
                     const newAdmin = {
                         user_name,
                         password: newpassword,
-                        id: admin_id,
-                        create_time: dtime().format('YYYY-MM-DD'),
-                        admin: adminTip,
-                        status,
+                        roles: ['admin'],
+                        create_time: new Date().getTime()
                     }
                     await UserModel.create(newAdmin)
                     req.session.admin_id = admin_id

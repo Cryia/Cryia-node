@@ -10,7 +10,7 @@ mongoose.Promise = global.Promise
 
 const db = mongoose.connection
 
-db.once('open' ,() => {
+db.once('open', async () => {
     console.log('连接数据库成功')
     try {
         const admin = await UserModel.findOne({username: 'admin'})
@@ -19,7 +19,7 @@ db.once('open' ,() => {
                 username: 'admin',
                 password: '8JzoHhxmOgq69v8mfYhvXA==',
                 roles: ['admin'],
-                create_time: dtime().format('YYYY-MM-DD'),
+                create_time: new Date().getTime(),
                 avatar: 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif'
             }
             await UserModel.create(newAdmin)
