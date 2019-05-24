@@ -1,12 +1,13 @@
-'use strict';
+'use strict'
 
 import mongoose from 'mongoose'
 
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 const dashboardSchema = new Schema({
     hash: String,
     config: {
+        page: Boolean,        
         title: String,
         about: String,
         width: Number,
@@ -26,11 +27,12 @@ const dashboardSchema = new Schema({
     level: Number,
     imgUrl: String,
     user: String,
+    group: String,
     timestamp: Number
 })
 
-export const DashboardModel = mongoose.model('Dashboard', dashboardSchema);
+export const DashboardModel = mongoose.model('Dashboard', dashboardSchema)
 
-export const TemplateModel = mongoose.model('Template', dashboardSchema);
+export const TemplateModel = mongoose.model('Template', dashboardSchema)
 
-export const PublishModel = mongoose.model('Publish', dashboardSchema);
+export const PublishModel = mongoose.model('Publish', dashboardSchema)

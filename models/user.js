@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
 import mongoose from 'mongoose'
 
-const Schema = mongoose.Schema;
+const Schema = mongoose.Schema
 
 const userSchema = new Schema({
     username: String,
@@ -11,11 +11,11 @@ const userSchema = new Schema({
     phone:Number,
     create_time: String,
     roles:Array,
-    group: String,
+    group: {type: Map, of: String},
     avatar: {type: String, default: 'default.jpg'},
     city: String,
 })
 
-userSchema.index({id: 1});
+userSchema.index({id: 1})
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema)

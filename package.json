@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "cross-env NODE_ENV=development nodemon --harmony index.js",
+    "start": "cross-env NODE_ENV=development nodemon --harmony index.js -i ./public/",
     "check": "cross-env NODE_ENV=production nodemon --harmony index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "deploy": "pm2 deploy production"

@@ -1,7 +1,10 @@
+import fs from 'fs'
+import cmd from 'child_process'
+
 import { DashboardModel, TemplateModel, PublishModel } from '../models/dashboard'
 import Thumbnial from "./thumbnail";
-
 import { Hash } from '../utils/crypto'
+
 
 class Dashboard {
     constructor() {}
@@ -26,11 +29,12 @@ class Dashboard {
 
     async update (req, res, next) {
         const hash = req.params.hash
-        const config = req.body.config
         const widget = req.body.widget
         const img = req.body.imgData
-
         const imgUrl = Thumbnial.save(hash, img.substring(22))
+
+        let config = req.body.config
+        config.timestamp = new Date().getTime()
 
         const dbModel = (req.originalUrl.indexOf('template') === 1) ? TemplateModel : DashboardModel
         try {
@@ -69,26 +73,33 @@ class Dashboard {
         const user = req.params.id
         const hash = Hash(user + new Date())
 
+        let template
+
         if (payload.template && payload.template != "blank") {
-            var template = await TemplateModel.findOne({hash: payload.template})
+            if (payload.mode === 'clone') {
+                template = await DashboardModel.findOne({hash: payload.template})
+            } else {
+                template = await TemplateModel.findOne({hash: payload.template})
+            }
         }
 
         const dashboard = {
             hash: hash,
             config: {
+                page: true,
                 title: payload.name,
                 about: payload.about || '',
                 width: template ? template.config.width : 1920,
                 height: template ? template.config.height : 1080,
-                zoom: template ? template.config.zoom : 100,
                 backgroundColor: template ? template.config.backgroundColor : '#FFFFFF',
                 backPic: template ? template.config.backPic : '',
+                zoom: template ? template.config.zoom : 100,
                 timestamp: new Date().getTime()
             },
             widget: template ? template.widget : [],
             publish: {
                 url: '',
-                status: 'unpublished'
+                status: 'unpublish'
             },
             isTemplate: !(!payload.isTemplate) ,
             imgUrl: '',
@@ -123,18 +134,27 @@ class Dashboard {
     }
 
     async getListForUser (req, res, next) {
-        const {limit = 20, offset = 0} = req.query;
+        const {limit = 20, page = 1, title = '.*', status = '.*'} = req.query;
         const user = req.params.id
+        const offset = (page - 1) * limit
+
         try {
-            const cols = await DashboardModel.find({user: user}, '-_id -user -widget -__v')
-                                            .sort({id: -1})
+            const cols = await DashboardModel.find({
+                                                    'user': user,
+                                                    'config.title': {$regex: title},
+                                                    'publish.status': {$regex: status}
+                                                    },
+                                                    '-_id -user -widget -__v')
+                                            .sort({timestamp: -1})
                                             .skip(Number(offset))
                                             .limit(Number(limit))
+
+            const totle = await DashboardModel.count()
             res.send({
                 code: 0,
                 data: {
                     items:cols,
-                    total:cols.length
+                    total:totle
                 }
             })
         } catch (err) {
@@ -165,7 +185,7 @@ class Dashboard {
         dashboardCol.publish.timestamp = new Date().getTime()
 
         switch (option) {
-            case 'unpublished' :
+            case 'unpublish' :
                 await PublishModel.remove({hash: dashboardCol.publish.hash})
                 dashboardCol.publish.hash = ''
                 break
@@ -202,6 +222,54 @@ class Dashboard {
                 extra: err
             })
         }
+    }
+
+    async download (req, res, next) {
+        const hash = req.params.hash
+        let col
+        try {
+            col = await PublishModel.findOne({hash: hash}, 'widget config')
+            if (!col) {
+                res.send({
+                    code: 1,
+                    msg: '大屏未发布'
+                })
+
+                return
+            }
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '获取大屏失败',
+                extra: err
+            })
+            return
+        }
+
+        const staticPath = process.cwd() + '/public/files/'
+        const fileName = hash + '.json'
+        const filePath = staticPath + fileName
+
+        await fs.writeFile(filePath, JSON.stringify(col),  function(err) {
+            if (err) {
+                console.log(err)
+            }
+        })
+
+        cmd.execFile(process.cwd() +'/scripts/pack.sh', [filePath], null, function (err, stdout, stderr) {
+            if (err || stderr) {
+                res.send({
+                    code: 1,
+                    msg: "文件打包失败, 请重试",
+                    extra: err || stderr
+                })
+            } else {
+                res.send({
+                    code: 0,
+                    data: stdout
+                })
+            }
+        })  
     }
 }
 

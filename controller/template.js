@@ -2,7 +2,7 @@ import { TemplateModel } from '../models/dashboard'
 
 class Template {
     async getAll(req, res, next) {
-        const {limit = 20, offset = 0} = req.query;
+        const {limit = 20, offset = 0} = req.query
         try {
             let list = await TemplateModel.find({}, '-_id -widget -__v').sort({id: -1}).skip(Number(offset)).limit(Number(limit))
 
