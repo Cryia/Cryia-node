@@ -30,7 +30,7 @@ router.get('/download/dashboards/:hash', Dashboard.download)
 // 发布管理
 router.post('/publish/:hash', Dashboard.publish)
 router.get('/publish/:hash', Publish.getConfig)
-
+ 
 // 模板管理
 router.get('/templates', Template.getAll)
 router.get('/templates/:hash', Dashboard.getConfig)

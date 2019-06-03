@@ -1,6 +1,7 @@
 import fs from "fs"
 import path from 'path'
 import crypto from 'crypto'
+import formidable from 'formidable'
 
 const staticPath = process.cwd() + '/public'
 
@@ -32,7 +33,6 @@ class Uploader {
             const form = formidable.IncomingForm()
             form.uploadDir = destFilePath
             form.parse(req, async (err, fields, files) => {
-                console.log(files)
                 const hashName = Uploader.Hash(files.file.name + new Date())
                 const extname = path.extname(files.file.name)
 
