@@ -11,7 +11,7 @@ const userSchema = new Schema({
     phone:Number,
     create_time: String,
     roles:Array,
-    group: {type: Map, of: String},
+    projects: {type: Map, of: String},
     avatar: {type: String, default: 'default.jpg'},
     city: String,
 })

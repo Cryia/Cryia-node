@@ -104,6 +104,7 @@ class Dashboard {
             isTemplate: !(!payload.isTemplate) ,
             imgUrl: '',
             user: user,
+            project: payload.project,
             timestamp: new Date().getTime()
         }
 
@@ -134,13 +135,25 @@ class Dashboard {
     }
 
     async getListForUser (req, res, next) {
-        const {limit = 20, page = 1, title = '.*', status = '.*'} = req.query;
+        function projectFilter(str) {
+            switch (str) {
+                case 'all':
+                    return ''
+                case 'ungrouped':
+                    return '^$'
+                default:
+                    return str
+            }
+        }
+
+        const {limit = 20, page = 1, title = '.*', status = '.*', project = '.*'} = req.query;
         const user = req.params.id
         const offset = (page - 1) * limit
 
         try {
             const cols = await DashboardModel.find({
                                                     'user': user,
+                                                    'project': {$regex: projectFilter(project)},
                                                     'config.title': {$regex: title},
                                                     'publish.status': {$regex: status}
                                                     },
@@ -149,7 +162,7 @@ class Dashboard {
                                             .skip(Number(offset))
                                             .limit(Number(limit))
 
-            const totle = await DashboardModel.count()
+            const totle = await DashboardModel.count({'project': {$regex: projectFilter(project)}})
             res.send({
                 code: 0,
                 data: {
@@ -270,6 +283,25 @@ class Dashboard {
                 })
             }
         })  
+    }
+
+    async move (req, res, next) {
+        const hash = req.params.hash
+        const project= req.params.key
+
+        console.log(hash, project)
+        try {
+            await DashboardModel.findOneAndUpdate({hash: hash}, {$set: {project: project}})
+            res.send({
+                code: 0
+            })
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '移动分组失败',
+                extra: err
+            })
+        }
     }
 }
 

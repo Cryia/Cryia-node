@@ -28,6 +28,7 @@ const dashboardSchema = new Schema({
     imgUrl: String,
     user: String,
     group: String,
+    project: {type: String, default: ''},
     timestamp: Number
 })
 

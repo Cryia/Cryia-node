@@ -1,4 +1,5 @@
 import UserModel from '../models/user'
+import { DashboardModel } from '../models/dashboard'
 import crypto from 'crypto'
 import formidable from 'formidable'
 
@@ -289,6 +290,48 @@ class User {
             res.send({
                 code: 1,
                 msg: '密码修改失败',
+                extra: err.message
+            })
+            return
+        }
+    }
+
+    async updateProject(req, res, next) {
+        const userId = req.params.user
+        const projects = req.body.projects
+
+        try {
+            await UserModel.findOneAndUpdate({id: userId}, {$set: {projects: projects}})
+            res.send({
+                code: 0
+            })
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '更新用户分组失败',
+                extra: err.message
+            })
+            return
+        }
+    }
+
+    async deleteProject(req, res, next) {
+        const userId = req.params.user
+        const projectKey = req.params.key
+        const projects = req.body.projects
+
+        console.log(projectKey, projects)
+        try {
+            await UserModel.findOneAndUpdate({id: userId}, {$set: {projects: projects}})
+            await DashboardModel.update({project: projectKey}, {$set: {project: ''}}, { multi: true })
+
+            res.send({
+                code: 0
+            })
+        } catch (err) {
+            res.send({
+                code: 1,
+                msg: '更新用户分组失败',
                 extra: err.message
             })
             return

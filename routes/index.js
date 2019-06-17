@@ -18,6 +18,8 @@ router.post('/user/logout', User.logout)
 // 获取用户信息
 router.get('/user/:id/info', User.getAccountInfo)
 router.post('/user/:id/account', User.updateAccount)
+router.post('/user/:id/projects', User.updateProject)
+router.delete('/user/:id/projects/:key', User.deleteProject)
 
 // 大屏管理
 router.get('/user/:id/dashboards', Dashboard.getListForUser)
@@ -26,6 +28,7 @@ router.get('/dashboards/:hash', Dashboard.getConfig)
 router.put('/dashboards/:hash', Dashboard.update)
 router.delete('/dashboards/:hash', Dashboard.delete)
 router.get('/download/dashboards/:hash', Dashboard.download)
+router.put('/projects/:key/dashborads/:hash', Dashboard.move)
 
 // 发布管理
 router.post('/publish/:hash', Dashboard.publish)
