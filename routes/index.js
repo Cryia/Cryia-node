@@ -28,7 +28,7 @@ router.get('/dashboards/:hash', Dashboard.getConfig)
 router.put('/dashboards/:hash', Dashboard.update)
 router.delete('/dashboards/:hash', Dashboard.delete)
 router.get('/download/dashboards/:hash', Dashboard.download)
-router.put('/projects/:key/dashborads/:hash', Dashboard.move)
+router.put('/projects/:key/dashboards/:hash', Dashboard.move)
 
 // 发布管理
 router.post('/publish/:hash', Dashboard.publish)
