@@ -203,7 +203,7 @@ class User {
 
         try {
             const image_path = await this.getPath(req)
-            await UserModel.findOneAndUpdate({id: admin_id}, {$set: {avatar: image_path}})
+            await UserModel.findOneAndUpdate({_id: admin_id}, {$set: {avatar: image_path}})
             res.send({
                 status: 1,
                 image_path,
@@ -218,7 +218,7 @@ class User {
         }
     }
     async updateAccount(req, res, next) {
-        const userId = req.params.user
+        const userId = req.params.id
         const oldPassword = this.encryption(req.body.oldPassword)
         const newPassword = req.body.newPassword
 
@@ -239,7 +239,7 @@ class User {
         }
 
         try {
-            const account = await UserModel.findOne({id: userId})
+            const account = await UserModel.findOne({_id: userId})
             if (!account) {
                 logger.info('该用户不存在')
                 res.send({
@@ -253,7 +253,7 @@ class User {
                 })
             } else {
                 const password = this.encryption(newPassword)
-                await UserModel.findOneAndUpdate({id: userId}, {$set: {password: password}})
+                await UserModel.findOneAndUpdate({_id: userId}, {$set: {password: password}})
                 res.send({
                     code: 0
                 })
@@ -269,11 +269,11 @@ class User {
     }
 
     async updateProject(req, res, next) {
-        const userId = req.params.user
+        const userId = req.params.id
         const projects = req.body.projects
 
         try {
-            await UserModel.findOneAndUpdate({id: userId}, {$set: {projects: projects}})
+            await UserModel.findOneAndUpdate({_id: userId}, {$set: {projects: projects}})
             res.send({
                 code: 0
             })
@@ -288,13 +288,13 @@ class User {
     }
 
     async deleteProject(req, res, next) {
-        const userId = req.params.user
+        const userId = req.params.id
         const projectKey = req.params.key
         const projects = req.body.projects
 
         console.log(projectKey, projects)
         try {
-            await UserModel.findOneAndUpdate({id: userId}, {$set: {projects: projects}})
+            await UserModel.findOneAndUpdate({_id: userId}, {$set: {projects: projects}})
             await DashboardModel.update({project: projectKey}, {$set: {project: ''}}, { multi: true })
 
             res.send({
