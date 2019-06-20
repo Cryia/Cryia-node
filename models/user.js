@@ -12,7 +12,7 @@ const userSchema = new Schema({
     create_time: String,
     roles:Array,
     projects: {type: Map, of: String},
-    avatar: {type: String, default: 'default.jpg'},
+    avatar: {type: String, default: 'https://avatars3.githubusercontent.com/u/4948057'},
     city: String,
 })
 

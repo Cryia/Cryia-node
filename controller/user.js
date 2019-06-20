@@ -31,6 +31,7 @@ class User {
             })
             return
         }
+
         const newpassword = this.encryption(user_password)
         try {
             const account = await UserModel.findOne({username:user_name})
@@ -79,67 +80,54 @@ class User {
         })
     }
     async register(req, res, next) {
-        const form = new formidable.IncomingForm()
-        form.parse(req, async (err, fields, files) => {
-            if (err) {
-                res.send({
-                    status: 0,
-                    type: 'FORM_DATA_ERROR',
-                    message: '表单信息错误'
-                })
-                return
+        var user_name = req.body.username
+        var user_password = req.body.password
+
+        try {
+            if (!user_name) {
+                throw new Error('用户名参数错误')
+            } else if (!user_password) {
+                throw new Error('密码参数错误')
             }
-            const {user_name, password, status = 1} = fields
-            try {
-                if (!user_name) {
-                    throw new Error('用户名错误')
-                }else if(!password){
-                    throw new Error('密码错误')
+        } catch (err) {
+            // logger.info(err.message, err)
+            res.send({
+                code: 1,
+                msg: "注册参数错误",
+                extra: err.message
+            })
+            return
+        }
+
+        try {
+            const user = await UserModel.findOne({username: user_name})
+            if (user) {
+                res.send({
+                    code: 1,
+                    type: 'USER_HAS_EXIST',
+                    msg: '该用户已经存在'
+                })
+            } else {
+                const newpassword = this.encryption(user_password)
+                const newAdmin = {
+                    username: user_name,
+                    password: newpassword,
+                    roles: ['user'],
+                    create_time: new Date().getTime()
                 }
-            } catch (err) {
-                console.log(err.message, err)
+                await UserModel.create(newAdmin)
                 res.send({
-                    status: 0,
-                    type: 'GET_ERROR_PARAM',
-                    message: err.message,
-                })
-                return
-            }
-            try {
-                const admin = await UserModel.findOne({user_name})
-                if (admin) {
-                    console.log('该用户已经存在')
-                    res.send({
-                        status: 0,
-                        type: 'USER_HAS_EXIST',
-                        message: '该用户已经存在',
-                    })
-                } else {
-                    const adminTip = status == 1 ? '管理员' : '超级管理员'
-                    const admin_id = await this.getId('admin_id')
-                    const newpassword = this.encryption(password)
-                    const newAdmin = {
-                        user_name,
-                        password: newpassword,
-                        roles: ['admin'],
-                        create_time: new Date().getTime()
-                    }
-                    await UserModel.create(newAdmin)
-                    req.session.admin_id = admin_id
-                    res.send({
-                        status: 1,
-                        message: '注册管理员成功',
-                    })
-                }
-            } catch (err) {
-                console.log('注册管理员失败', err)
-                res.send({
-                    status: 0,
-                    type: 'REGISTER_ADMIN_FAILED',
-                    message: '注册管理员失败',
+                    code: 0,
+                    msg: '注册成功'
                 })
             }
-        })
+        } catch (err) {
+            res.send({
+                code: 2,
+                msg: '注册失败',
+                extra: err.message
+            })
+        }
     }
     encryption(password) {
         const newpassword = this.Md5(this.Md5(password).substr(2, 7) + this.Md5(password))
@@ -178,22 +166,6 @@ class User {
                 status: 0,
                 type: 'ERROR_GET_ADMIN_LIST',
                 message: '获取超级管理列表失败'
-            })
-        }
-    }
-    async getAdminCount(req, res, next) {
-        try {
-            const count = await UserModel.count()
-            res.send({
-                status: 1,
-                count,
-            })
-        } catch(err) {
-            console.log('获取管理员数量失败', err)
-            res.send({
-                status: 0,
-                type: 'ERROR_GET_ADMIN_COUNT',
-                message: '获取管理员数量失败'
             })
         }
     }

@@ -4,8 +4,7 @@ import mongoose from 'mongoose'
 import config from '../config/default'
 import UserModel from '../models/user'
 
-
-mongoose.connect(config.database, { useNewUrlParser: true })
+mongoose.connect(config.database, { useNewUrlParser: true, useCreateIndex: true })
 mongoose.Promise = global.Promise
 
 const db = mongoose.connection

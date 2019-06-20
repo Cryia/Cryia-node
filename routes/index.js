@@ -16,6 +16,7 @@ router.post('/user/login', User.login)
 router.post('/user/logout', User.logout)
 
 // 获取用户信息
+router.post('/user', User.register)
 router.get('/user/:id/info', User.getAccountInfo)
 router.post('/user/:id/account', User.updateAccount)
 router.post('/user/:id/projects', User.updateProject)
