@@ -162,7 +162,7 @@ class Dashboard {
                                             .skip(Number(offset))
                                             .limit(Number(limit))
 
-            const totle = await DashboardModel.count({'project': {$regex: projectFilter(project)}})
+            const totle = await DashboardModel.count({'user': user, 'project': {$regex: projectFilter(project)}})
             res.send({
                 code: 0,
                 data: {
